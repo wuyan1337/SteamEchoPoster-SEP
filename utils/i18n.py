@@ -1,0 +1,125 @@
+﻿# utils/i18n.py
+#暂未实现
+from enum import Enum
+
+class Lang(str, Enum):
+    ZH = "zh"
+    EN = "en"
+
+STR = {
+    "zh": {
+        "app_title": "SteamEchoPost",
+        "login": "登录Steam",
+        "open_home": "打开作者主页",
+        "open_github": "打开 GitHub 主页",
+        "add_groups": "添加组",
+        "fetch": "抓取群组到 groups.txt（后台）",
+        "start": "开始自动发布（后台）",
+        "stop": "停止",
+        "leave_scan": "退出无权限组（扫描）",
+        "groups_path_label": "groups.txt 路径:",
+        "msg_label": "发送内容:",
+        "msg_placeholder": "要发送的文本…",
+        "delay_label": "每组间隔:",
+        "delay_suffix": " s/组",
+        "post_wl_label": "留言白名单（这些群不会自动留言）:",
+        "del_wl_label": "删除白名单（这些群不会被自动退出）:",
+        "log_label": "日志输出:",
+        "menu_lang": "语言:",
+        "lang_cn": "中文",
+        "lang_en": "English",
+        # 常用日志
+        "welcome_1": "SteamEchoPost v0.1",
+        "welcome_2": "作者QQ1730249",
+        "welcome_use_1": "------使用方法------",
+        "welcome_use_2": "1. 登录Steam",
+        "welcome_use_3": "2. 抓取群",
+        "welcome_use_4": "3. 填写发送内容",
+        "welcome_use_5": "4. 开始自动发布",
+        "opened_home": "已在默认浏览器打开作者主页",
+        "opened_github": "已在默认浏览器打开 GitHub",
+        "need_login": "未检测到登录状态。请先登录。",
+        "login_started": "已启动官方浏览器，并使用专用用户目录：{profile} 请在弹出的窗口中完成登录。登录一次后将长期生效。",
+        "login_warn": "登录成功后请手动关闭浏览器，否则会导致后续报错。",
+        "fetch_start": "开始抓取群组…",
+        "fetch_done": "已抓取 {n} 个群组，保存到 {path}",
+        "groups_missing": "未找到 groups.txt。",
+        "groups_empty": "groups.txt 为空。",
+        "send_empty": "发送内容为空。",
+        "sending_login_missing": "未登录，无法发送。请先登录。",
+        "send_progress_head": "待发送群组数: {n}",
+        "send_progress_delay": "每组间隔: {delay:.2f}s，点击后等待: {send:.2f}s",
+        "send_progress_eta": "预计总耗时 ≈ {eta}（约 {sec:.1f} 秒）",
+        "send_finish": "完成。成功发送 {ok}/{total} 个群组。",
+        "time_real": "实际耗时：{fmt}（{sec:.1f} 秒）",
+        "scan_confirm": "将自动扫描 groups.txt 中的群组，凡是没有留言框（无权限）的将尝试退出。\n\n是否继续？",
+        "scan_cancel": "已取消退出扫描。",
+        "scan_begin": "开始扫描 {total} 个群组，自动退出无权限组…",
+        "scan_have_perm": "有留言权限，跳过：{url}",
+        "scan_del_wl": "删除白名单保护，不退出：{url}",
+        "scan_try_leave": "无留言权限，尝试退出：{url}",
+        "scan_end": "扫描完成。退出 {left} 个；保留/跳过 {skipped} 个。",
+    },
+    "en": {
+        "app_title": "SteamEchoPost",
+        "login": "Login Steam",
+        "open_home": "Open Author Profile",
+        "open_github": "Open GitHub",
+        "add_groups": "Add Groups",
+        "fetch": "Fetch groups to groups.txt (background)",
+        "start": "Start Auto Posting (background)",
+        "stop": "Stop",
+        "leave_scan": "Leave No-Permission Groups (scan)",
+        "groups_path_label": "groups.txt Path:",
+        "msg_label": "Message:",
+        "msg_placeholder": "Text to send…",
+        "delay_label": "Delay per group:",
+        "delay_suffix": " s/group",
+        "post_wl_label": "Post Whitelist (won’t auto-post to these groups):",
+        "del_wl_label": "Leave Whitelist (won’t leave these groups):",
+        "log_label": "Logs:",
+        "menu_lang": "Language:",
+        "lang_cn": "中文",
+        "lang_en": "English",
+        # logs
+        "welcome_1": "SteamEchoPost v0.1",
+        "welcome_2": "Author QQ1730249",
+        "welcome_use_1": "------How to use------",
+        "welcome_use_2": "1. Login Steam",
+        "welcome_use_3": "2. Fetch Groups",
+        "welcome_use_4": "3. Fill Message",
+        "welcome_use_5": "4. Start Auto Posting",
+        "opened_home": "Opened author profile in default browser",
+        "opened_github": "Opened GitHub in default browser",
+        "need_login": "Not logged in. Please login first.",
+        "login_started": "Launched official browser with profile: {profile} Please complete login in the popup. It will persist.",
+        "login_warn": "After login, please close the browser manually to avoid later errors.",
+        "fetch_start": "Fetching groups…",
+        "fetch_done": "Fetched {n} groups to {path}",
+        "groups_missing": "groups.txt not found.",
+        "groups_empty": "groups.txt is empty.",
+        "send_empty": "Message is empty.",
+        "sending_login_missing": "Not logged in. Cannot send. Please login first.",
+        "send_progress_head": "Groups to send: {n}",
+        "send_progress_delay": "Delay per group: {delay:.2f}s, wait after click: {send:.2f}s",
+        "send_progress_eta": "Estimated total time ≈ {eta} (about {sec:.1f} sec)",
+        "send_finish": "Done. Sent {ok}/{total} groups successfully.",
+        "time_real": "Actual time: {fmt} ({sec:.1f} sec)",
+        "scan_confirm": "This will scan groups in groups.txt and try to leave any group without comment box.\n\nContinue?",
+        "scan_cancel": "Leave scan canceled.",
+        "scan_begin": "Scanning {total} groups, leaving no-permission ones…",
+        "scan_have_perm": "Has comment permission, skip: {url}",
+        "scan_del_wl": "Protected by Leave Whitelist, skip: {url}",
+        "scan_try_leave": "No permission, try leaving: {url}",
+        "scan_end": "Scan complete. Left {left}; kept/skipped {skipped}.",
+    }
+}
+
+def tr(lang: Lang, key: str, **kwargs) -> str:
+    s = STR.get(lang.value, {}).get(key, key)
+    if kwargs:
+        try:
+            return s.format(**kwargs)
+        except Exception:
+            return s
+    return s

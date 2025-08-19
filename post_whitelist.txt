@@ -1,0 +1,2 @@
+# 每行一个群链接，例如：
+# https://steamcommunity.com/groups/forgotteny

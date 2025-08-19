@@ -1,0 +1,2 @@
+# 每行一个群链接，不会被自动退出，如：
+# https://steamcommunity.com/groups/forgotteny
