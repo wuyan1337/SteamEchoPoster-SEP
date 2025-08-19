@@ -1,0 +1,2 @@
+# SteamEchoPoster-SEP
+这是一个基于Steam组批量自动留言来达到Steam被动扩列的程序
