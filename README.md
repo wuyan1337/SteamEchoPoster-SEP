@@ -10,3 +10,7 @@ PS：使用本软件前请确认你的Steam账号加入了很多组 这个软件
 由于我遍历全网没有找到steam被动扩列的软件 然后我就做了一个 没有做什么所谓的兼容性测试 教程写的比较粗略 但了解一点的的肯定能看懂 如果有问题有能力的就自己修 没能力的可以问问AI 不行再加我QQ1730249
 PS： 欢迎扩列 https://steamcommunity.com/id/wuyan1337/
 2025/8/19
+
+
+软件前身
+https://github.com/wuyan1337/SteamGroupAutomaticMessage-PassiveAdd
