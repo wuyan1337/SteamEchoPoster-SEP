@@ -33,6 +33,28 @@ def apply_modern_style(widget):
         QScrollBar:vertical { background: transparent; width: 10px; margin: 2px; }
         QScrollBar::handle:vertical { background: rgba(0,0,0,0.25); border-radius: 5px; }
         QScrollBar::add-line:vertical, QScrollBar::sub-line:vertical { height:0; }
+
+        QComboBox {
+            background: rgba(255, 255, 255, 0.85);  
+            color: #000;                           
+            border: 1px solid rgba(0, 0, 0, 0.2);
+            border-radius: 6px;
+            padding: 4px 8px;
+            min-height: 28px;
+        }
+        QComboBox::drop-down {
+            subcontrol-origin: padding;
+            subcontrol-position: top right;
+            width: 20px;
+            border-left: 1px solid rgba(0, 0, 0, 0.2);
+        }
+        QComboBox QAbstractItemView {
+            background: #fff;   
+            color: #000;        
+            selection-background-color: #0078d7; 
+            selection-color: #fff;               
+        }
+
     """)
 
 def fade_in(widget):
