@@ -1,2 +1,3 @@
+#Each line fill with a group link, which will not be automatically exited, such as:
 # 每行一个群链接，不会被自动退出，如：
 # https://steamcommunity.com/groups/forgotteny
