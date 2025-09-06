@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 import time
 from pathlib import Path
+from utils.i18n import Lang, tr
 
 from selenium import webdriver
 from selenium.webdriver.common.by import By
@@ -15,9 +16,10 @@ from utils.paths import PROFILE_DIR, GROUPS_FILE
 from utils.browser import MY_GROUPS_URL, make_driver, is_logged_in
 
 class SteamPoster:
-    def __init__(self, log_emit, headless: bool = True):
+    def __init__(self, log_emit, headless: bool = True, lang: Lang = Lang.EN):
         self._emit = log_emit
         self.driver = make_driver(headless=headless)
+        self.lang = lang  
 
     def log(self, s: str):
         self._emit(s)
@@ -33,7 +35,7 @@ class SteamPoster:
 
     def fetch_groups(self, out_path: Path = GROUPS_FILE) -> int:
         d = self.driver
-        self.log('[*] 打开“我的群组”页面...')
+        self.log(tr(self.lang, "fetch_open_groups"))
         d.get(MY_GROUPS_URL)
         time.sleep(2)
 
@@ -73,7 +75,7 @@ class SteamPoster:
             return 0
 
         Path(out_path).write_text('\n'.join(links), encoding='utf-8')
-        self.log(f'[✓] 已抓取 {len(links)} 个群组，保存到 {Path(out_path).resolve()}')
+        self.log(tr(self.lang, "fetch_saved_n", n=len(links), path=str(Path(out_path).resolve())))
         return len(links)
 
     def post_in_group(self, group_url: str, message: str, wait_after_send: float = 1.5) -> bool:
@@ -86,7 +88,6 @@ class SteamPoster:
             except Exception:
                 pass
 
-        # 快速预检
         quick_js = r"""
             const sels = [
               'textarea.commentthread_textarea',
@@ -156,7 +157,6 @@ class SteamPoster:
         return True
 
     def has_comment_box(self) -> bool:
-        """当前群组页是否存在留言框（快速预检，避免长等待）。"""
         d = self.driver
         quick_js = r"""
             const sels = [
@@ -232,10 +232,6 @@ class SteamPoster:
         return False
 
     def join_groups_from_profile(self, profile_url: str, per_join_delay: float = 0.3) -> dict:
-        """
-        打开一个 Steam 主页（/id/xxx 或 /profiles/xxxxxxxxxxxxx），读取该用户的所有群组并逐个加入。
-        返回：{total, ok, fail, joined:[], failed:[], error?}
-        """
         d = self.driver
         self.log(f'[*] 打开对方主页：{profile_url}')
 
@@ -367,4 +363,81 @@ class SteamPoster:
             except Exception:
                 pass
 
+    def get_profile_url(self) -> str | None:
+        d = self.driver
+        js = r"""
+        const normalize = (u) => {
+          try {
+            const url = new URL(u);
+            let path = url.pathname.replace(/\/+$|\/+(?=\?)/g, '');
+            return url.origin + path;
+          } catch (e) { return u; }
+        };
+        let selectors = [
+          '#global_action_menu a[href*="/profiles/"]',
+          '#global_action_menu a[href*="/id/"]',
+          'a.menuitem[href*="/profiles/"]',
+          'a.menuitem[href*="/id/"]',
+          '.user_avatar a[href*="/profiles/"]',
+          '.user_avatar a[href*="/id/"]'
+        ];
+        let link = null;
+        for (const s of selectors) {
+          const elem = document.querySelector(s);
+          if (elem && elem.href) { link = elem.href; break; }
+        }
+        if (!link) {
+          try {
+            if (typeof g_rgProfileData !== 'undefined' && g_rgProfileData.url) link = g_rgProfileData.url;
+          } catch (e) {}
+        }
+        return link ? normalize(link.split('?')[0]) : null;
+        """
+        try:
+            return d.execute_script(js)
+        except Exception:
+            return None
+
+    def has_self_comment(self) -> bool:
+        d = self.driver
+        js = r"""
+        const normalize = (u) => {
+          try {
+            const url = new URL(u);
+            let path = url.pathname.replace(/\/+$|\/+(?=\?)/g, '');
+            return url.origin + path;
+          } catch (e) { return u; }
+        };
+        let selectors = [
+          '#global_action_menu a[href*="/profiles/"]',
+          '#global_action_menu a[href*="/id/"]',
+          'a.menuitem[href*="/profiles/"]',
+          'a.menuitem[href*="/id/"]',
+          '.user_avatar a[href*="/profiles/"]',
+          '.user_avatar a[href*="/id/"]'
+        ];
+        let link = null;
+        for (const s of selectors) {
+          const elem = document.querySelector(s);
+          if (elem && elem.href) { link = elem.href; break; }
+        }
+        if (!link) {
+          try {
+            if (typeof g_rgProfileData !== 'undefined' && g_rgProfileData.url) link = g_rgProfileData.url;
+          } catch (e) {}
+        }
+        if (!link) return false;
+        const selfUrl = normalize(link.split('?')[0]);
+        const authorLinks = Array.from(
+          document.querySelectorAll('.commentthread_comment_author a[href]')
+        ).map(a => a.href).filter(Boolean);
+        for (const href of authorLinks) {
+          if (normalize(href.split('?')[0]) === selfUrl) return true;
+        }
+        return false;
+        """
+        try:
+            return bool(d.execute_script(js))
+        except Exception:
+            return False
 

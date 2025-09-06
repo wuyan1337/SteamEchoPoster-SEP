@@ -1,4 +1,4 @@
-﻿# utils/i18n.py
+# utils/i18n.py
 from enum import Enum
 
 class Lang(str, Enum):
@@ -18,7 +18,7 @@ STR = {
         "groups_path_label": "groups.txt 路径:",
         "msg_label": "发送内容:",
         "msg_placeholder": "要发送的文本…",
-        "delay_label": "每组间隔:",
+        "delay_label": "每组间隔（保持默认即可）:",
         "delay_suffix": " s/组",
         "post_wl_label": "留言白名单（这些群不会自动留言）:",
         "del_wl_label": "删除白名单（这些群不会被自动退出）:",
@@ -26,9 +26,8 @@ STR = {
         "lang_label": "语言:",
         "lang_cn": "中文",
         "lang_en": "English",
-        # 日志常用
         "welcome_1": "SteamEchoPost v0.1",
-        "welcome_2": "作者QQ1730249",
+        "welcome_2": "QQ群701972422",
         "welcome_use_1": "------使用方法------",
         "welcome_use_2": "1. 登录Steam",
         "welcome_use_3": "2. 抓取群",
@@ -58,10 +57,18 @@ STR = {
         "stopped": "已停止。",
         "scan_done": "扫描完成。退出 {left} 个；保留/跳过 {skip} 个。",
         "leave_error": "退出扫描异常: {err}",
-
-        # 发送任务前 3 行（也做成可翻译）
         "to_send_count": "待发送群组数: {n}",
         "per_group_delay": "每组间隔: {delay:.2f}s，点击后等待: {wait:.2f}s",
+        "smart_mode_label": "智能模式",
+        "smart_mode_popup_title": "智能模式说明",
+        "smart_mode_popup_body": "在留言前先扫描第一页留言区是否有自己的留言记录。如果已有留言，则跳过该群组，以避免刷屏或被踢。",
+        "skip_existing_comment": "[{i}/{total}] 已存在自己的留言，跳过：{url}",
+        "smart_mode_on": "[i] 已启用智能模式",
+        "smart_mode_off": "[i] 已关闭智能模式",
+        "exit_low_activity": "退出低活跃组",
+        "low_activity_label": "低活跃模式",
+        "low_activity_info_title": "低活跃模式",
+        "low_activity_info_body": "低活跃模式开启后，会记录所有自己上次留言还没被刷掉的群组，然后可以一键退出，以达到缩短扩列群发时间/减少无用扩列的效果",
     },
     "en": {
         "app_title": "SteamEchoPost",
@@ -75,7 +82,7 @@ STR = {
         "groups_path_label": "groups.txt Path:",
         "msg_label": "Message:",
         "msg_placeholder": "Text to send…",
-        "delay_label": "Delay per group:",
+        "delay_label": "Delay per group（Keep Default）:",
         "delay_suffix": " s/group",
         "post_wl_label": "Post Whitelist (won’t auto-post):",
         "del_wl_label": "Leave Whitelist (won’t be auto-left):",
@@ -83,9 +90,8 @@ STR = {
         "lang_label": "Language:",
         "lang_cn": "中文",
         "lang_en": "English",
-        # logs
         "welcome_1": "SteamEchoPost v0.1",
-        "welcome_2": "Author QQ1730249",
+        "welcome_2": "QQgroup701972422",
         "welcome_use_1": "------How to use------",
         "welcome_use_2": "1. Login Steam",
         "welcome_use_3": "2. Fetch Groups",
@@ -103,13 +109,10 @@ STR = {
         "sent_skip": "    [!] Skipped.",
         "done": "Done. Sent {ok}/{total} groups successfully.",
         "time_real": "Actual time: {fmt} ({sec:.1f} sec)",
-        # 英文包对应翻译：
         "login_started": "Launched the official browser with profile: {profile}. Please complete login in the popup window. It will persist.",
         "login_warn": "After logging in, please close the browser manually to avoid later errors.",
-
         "fetch_open_groups": "Opening “My Groups” page...",
         "fetch_saved_n": "Fetched {n} groups, saved to {path}",
-
         "scan_start": "Scanning {total} groups, leaving no-permission ones…",
         "has_comment_skip": "[{i}/{total}] Has comment permission, skip: {url}",
         "leave_protected": "[{i}/{total}] Protected by Leave Whitelist, skip: {url}",
@@ -117,11 +120,20 @@ STR = {
         "stopped": "Stopped.",
         "scan_done": "Scan complete. Left {left}; kept/skipped {skip}.",
         "leave_error": "Leave scan error: {err}",
-
         "to_send_count": "Groups to send: {n}",
         "per_group_delay": "Delay per group: {delay:.2f}s, wait after click: {wait:.2f}s",
-
         "lang_switched": "Language switched: {name}",
+        "skip_existing_comment": "[{i}/{total}] Existing self comment found, skip: {url}",
+        "smart_mode_label": "Smart Mode",
+        "smart_mode_popup_title": "Smart Mode Info",
+        "smart_mode_popup_body": "Before posting, scan the first page of the comment section. If your own comment is found, skip this group to avoid spamming or being kicked.",
+        "skip_existing_comment": "[{i}/{total}] Existing self comment found, skip: {url}",
+        "smart_mode_on": "[i] Smart Mode enabled.",
+        "smart_mode_off": "[i] Smart Mode disabled.",
+        "exit_low_activity": "Exit the low activity group",
+        "low_activity_label": "Low activity mode",
+        "low_activity_info_title": "Low activity mode",
+        "low_activity_info_body": "When low activity mode is turned on, it will record all the groups where you left a message last time and have not been covered. Then you can exit with one click to shorten the time of group expansion/reduce useless group expansion.",
 
     }
 }

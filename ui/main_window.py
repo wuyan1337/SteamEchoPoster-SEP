@@ -5,7 +5,7 @@ import threading
 import webbrowser
 import subprocess
 from pathlib import Path
-
+from utils.paths import LOW_FILE
 from PyQt6 import QtWidgets, QtCore, QtGui
 from PyQt6.QtCore import QSettings
 
@@ -61,8 +61,36 @@ class MainWindow(QtWidgets.QWidget):
         self.msg.setPlaceholderText(tr(self.lang, "msg_placeholder"))
         self.delay = QtWidgets.QDoubleSpinBox()
         self.delay.setRange(0.0, 60.0)
-        self.delay.setValue(0.8)
+        self.delay.setValue(0)
         self.delay.setSuffix(tr(self.lang, "delay_suffix"))
+
+                # 低活跃组自动记录复选框
+        self.low_activity_cb = QtWidgets.QCheckBox()
+        # 默认不勾选，可以从 QSettings 中读取以前的状态
+        saved_low = self.settings.value("low_activity", "0")
+        try:
+            self.low_activity_cb.setChecked(bool(int(saved_low)))
+        except Exception:
+            self.low_activity_cb.setChecked(False)
+
+        # 退出低活跃组按钮
+        self.exit_low_btn = QtWidgets.QPushButton()
+        self.exit_low_btn.clicked.connect(self.leave_low_activity_groups)
+        self.low_activity_cb.stateChanged.connect(self.on_low_activity_toggled)
+
+
+
+
+                # --- Smart Mode checkbox ---
+        self.smart_mode_cb = QtWidgets.QCheckBox()
+        saved_smart = self.settings.value("smart_mode", "0")
+        try:
+            self.smart_mode_cb.setChecked(bool(int(saved_smart)))
+        except Exception:
+            self.smart_mode_cb.setChecked(False)
+        # 连接勾选事件
+        self.smart_mode_cb.stateChanged.connect(self.on_smart_mode_toggled)
+
 
         self.groups_path = QtWidgets.QLineEdit(str(GROUPS_FILE))
         self.pick_btn = QtWidgets.QPushButton()
@@ -91,6 +119,8 @@ class MainWindow(QtWidgets.QWidget):
         form.setLabelAlignment(QtCore.Qt.AlignmentFlag.AlignLeft)
         form.addRow(self.lbl_msg, self.msg)
         form.addRow(self.lbl_delay, self.delay)
+        form.addRow(self.smart_mode_cb)
+        form.addRow(self.low_activity_cb)
 
         path_row = QtWidgets.QHBoxLayout()
         path_row.addWidget(self.groups_path)
@@ -115,11 +145,13 @@ class MainWindow(QtWidgets.QWidget):
         btn_row.addWidget(self.start_btn)
         btn_row.addWidget(self.stop_btn)
         btn_row.addWidget(self.leave_btn)
+        btn_row.addWidget(self.exit_low_btn)
 
         self.lbl_groups_path = QtWidgets.QLabel()
         self.lbl_post_wl = QtWidgets.QLabel()
         self.lbl_del_wl = QtWidgets.QLabel()
         self.lbl_logs = QtWidgets.QLabel()
+
 
         body.addLayout(hdr_row)
         body.addLayout(form)
@@ -137,6 +169,7 @@ class MainWindow(QtWidgets.QWidget):
 
         body.addWidget(self.lbl_logs)
         body.addWidget(self.log_view, 1)
+    
 
         self.poster: SteamPoster | None = None
         self.worker_thread: threading.Thread | None = None
@@ -157,6 +190,7 @@ class MainWindow(QtWidgets.QWidget):
         self.post_wl_btn.clicked.connect(self.open_post_whitelist)
         self.del_wl_btn.clicked.connect(self.open_del_whitelist)
 
+
         apply_modern_style(self)
         fade_in(self)
 
@@ -171,7 +205,8 @@ class MainWindow(QtWidgets.QWidget):
 
     def ensure_poster(self) -> SteamPoster:
         if self.poster is None:
-            self.poster = SteamPoster(log_emit=self.log, headless=True)
+            # 传入 self.lang
+            self.poster = SteamPoster(log_emit=self.log, headless=True, lang=self.lang)
         return self.poster
 
     def on_lang_changed(self):
@@ -217,7 +252,7 @@ class MainWindow(QtWidgets.QWidget):
         self.lbl_del_wl.setText(tr(self.lang, "del_wl_label"))
         self.lbl_logs.setText(tr(self.lang, "log_label"))
 
-        self.pick_btn.setText(tr(self.lang, "open_home") if False else tr(self.lang, "fetch"))  # 只是避免未用变量告警，无实义
+        self.pick_btn.setText(tr(self.lang, "open_home") if False else tr(self.lang, "fetch")) 
         self.fetch_btn.setText(tr(self.lang, "fetch"))
         self.start_btn.setText(tr(self.lang, "start"))
         self.stop_btn.setText(tr(self.lang, "stop"))
@@ -225,6 +260,12 @@ class MainWindow(QtWidgets.QWidget):
         self.post_wl_btn.setText(tr(self.lang, "post_wl_label"))
         self.del_wl_btn.setText(tr(self.lang, "del_wl_label"))
         self.pick_btn.setText(self.tr_pick_button())
+        # 更新智能模式复选框文本
+        self.smart_mode_cb.setText(tr(self.lang, "smart_mode_label"))
+        self.low_activity_cb.setText(tr(self.lang, "low_activity_label"))
+        self.exit_low_btn.setText(tr(self.lang, "exit_low_activity"))
+
+
 
     def tr_pick_button(self) -> str:
         return "选择 groups.txt" if self.lang == Lang.ZH else "Browse groups.txt"
@@ -260,17 +301,25 @@ class MainWindow(QtWidgets.QWidget):
     def do_fetch(self):
         def run():
             try:
-                self.log(f"[*] {tr(self.lang, 'fetch_start')}")
+                # 日志：开始抓取群组
+                self.log(tr(self.lang, "fetch_start"))
                 poster = self.ensure_poster()
+                # 登录检测
                 if not poster.ensure_logged():
-                    self.log(f"[!] {tr(self.lang, 'need_login')}")
+                    self.log(tr(self.lang, "need_login"))
                     return
+
                 out = Path(self.groups_path.text())
                 out.parent.mkdir(parents=True, exist_ok=True)
+
+                # 实际抓取
                 n = poster.fetch_groups(out)
+
             except Exception as e:
-                self.log(f'[!] 抓取异常: {e!r}')
+                # 日志：抓取异常
+                self.log(tr(self.lang, "fetch_error", err=e))
         threading.Thread(target=run, daemon=True).start()
+
 
     def do_start(self):
         message = self.msg.toPlainText().strip()
@@ -308,7 +357,6 @@ class MainWindow(QtWidgets.QWidget):
         self.log(f"[i] {tr(self.lang, 'per_group_delay', delay=delay, wait=send_wait)}")
         self.log(f"[i] {tr(self.lang, 'send_eta', eta=fmt_duration(total_eta), sec=total_eta)}")
 
-
         def run():
             t0 = time.time()
             try:
@@ -323,33 +371,62 @@ class MainWindow(QtWidgets.QWidget):
                     poster.driver.set_page_load_timeout(12)
                 except Exception:
                     pass
-
                 try:
                     if not poster.ensure_logged():
                         self.log(f"[!] {tr(self.lang, 'need_login')}")
                         return
                 except Exception as e:
-                    self.log(f'[!] 登录检测异常：{e!r}（将尝试继续，但可能失败）')
+                    self.log(tr(self.lang, "login_check_error", err=e))
 
                 total = len(links)
                 sent = 0
 
                 post_wl = load_list(self.post_wl_path.text())
-                self.log(f'[i] 留言白名单已加载：{len(post_wl)} 条')
+                self.log(tr(self.lang, "post_wl_loaded", n=len(post_wl)))
+
+                if self.low_activity_cb.isChecked():
+                    try:
+                        with open(LOW_FILE, "w", encoding="utf-8"):
+                            pass  
+                    except Exception as err:
+                        self.log(f"[!] 无法清空 low.txt: {err!r}")
 
                 for i, url in enumerate(links, 1):
                     if self._stop_flag.is_set():
-                        self.log('[*] 已停止。')
+                        self.log(tr(self.lang, "stopped"))
                         break
 
                     if normalize_url(url) in post_wl:
-                        self.log(f'[{i}/{total}] 留言白名单跳过：{url}')
+                        self.log(tr(self.lang, "post_wl_skip", i=i, total=total, url=url))
                         continue
 
                     self.log(tr(self.lang, "open_group", i=i, total=total, url=url))
 
                     ok = False
                     try:
+                        if self.smart_mode_cb.isChecked():
+                            try:
+                                poster.driver.get(url)
+                            except Exception:
+                                try:
+                                    poster.driver.execute_script("window.stop();")
+                                except Exception:
+                                    pass
+
+                            try:
+                                if poster.has_self_comment():
+                                    if self.low_activity_cb.isChecked():
+                                        try:
+                                            with open(LOW_FILE, "a", encoding="utf-8") as f:
+                                                f.write(url + "\n")
+                                            self.log(tr(self.lang, "low_saved", url=url))
+                                        except Exception as e_low:
+                                            self.log(f"[!] 写入 low.txt 失败: {e_low!r}")
+                                    self.log(tr(self.lang, "skip_existing_comment", i=i, total=total, url=url))
+                                    continue  
+                            except Exception as e:
+                                self.log(f'    [!] 自检留言异常：{e!r}')
+
                         ok = poster.post_in_group(url, message, wait_after_send=send_wait)
                     except Exception as e:
                         self.log(f'    [!] 发送异常：{e!r}')
@@ -374,6 +451,7 @@ class MainWindow(QtWidgets.QWidget):
                 self.log(f"[i] {tr(self.lang, 'time_real', fmt=fmt_duration(elapsed), sec=elapsed)}")
                 self.stop_btn.setEnabled(False)
                 self.start_btn.setEnabled(True)
+
 
         self.worker_thread = threading.Thread(target=run, daemon=True)
         self.worker_thread.start()
@@ -589,3 +667,98 @@ class MainWindow(QtWidgets.QWidget):
         close_btn.clicked.connect(dlg.close)
         dlg.exec()
 
+    def on_smart_mode_toggled(self, state):
+        """保存智能模式状态并在启用或关闭时提示/记录日志"""
+        enabled = bool(state)
+        self.settings.setValue("smart_mode", 1 if enabled else 0)
+        if enabled:
+            QtWidgets.QMessageBox.information(
+                self,
+                tr(self.lang, "smart_mode_popup_title"),
+                tr(self.lang, "smart_mode_popup_body")
+            )
+            self.log(tr(self.lang, "smart_mode_on"))
+        else:
+            self.log(tr(self.lang, "smart_mode_off"))
+
+
+    def on_low_activity_toggled(self, state):
+        """保存低活跃模式状态并在启用时显示说明"""
+        enabled = bool(state)
+        self.settings.setValue("low_activity", 1 if enabled else 0)
+        if enabled:
+            QtWidgets.QMessageBox.information(
+                self,
+                tr(self.lang, "low_activity_info_title"),
+                tr(self.lang, "low_activity_info_body")
+            )
+            self.log(tr(self.lang, "low_activity_on") if hasattr(tr(self.lang, "low_activity_on"), '__call__') else "[i] 低活跃模式已启用")
+        else:
+            self.log(tr(self.lang, "low_activity_off") if hasattr(tr(self.lang, "low_activity_off"), '__call__') else "[i] 低活跃模式已关闭")
+
+
+
+    def leave_low_activity_groups(self):
+        reply = QtWidgets.QMessageBox.question(
+            self,
+            tr(self.lang, "confirm_exit_low_title"),
+            tr(self.lang, "confirm_exit_low_body"),
+            QtWidgets.QMessageBox.StandardButton.Yes | QtWidgets.QMessageBox.StandardButton.No
+        )
+        if reply != QtWidgets.QMessageBox.StandardButton.Yes:
+            return
+
+        path = LOW_FILE
+        if not path.exists():
+            self.log("[!] low.txt 不存在或为空" if self.lang == Lang.ZH else "[!] low.txt not found or empty")
+            return
+
+        urls = [ln.strip() for ln in path.read_text(encoding="utf-8", errors="ignore").splitlines() if ln.strip()]
+        if not urls:
+            self.log("[!] low.txt 为空" if self.lang == Lang.ZH else "[!] low.txt is empty")
+            return
+
+        self._stop_flag.clear()
+        self.stop_btn.setEnabled(True)
+
+        def run():
+            try:
+                poster = self.ensure_poster()
+                if not poster.ensure_logged():
+                    self.log(f"[!] {tr(self.lang, 'need_login')}")
+                    return
+
+                total = len(urls)
+                left_count = 0
+                skipped = 0
+                del_wl = load_list(self.del_wl_path.text())
+
+                for i, url in enumerate(urls, 1):
+                    if self._stop_flag.is_set():
+                        self.log(tr(self.lang, "stopped"))
+                        break
+
+                    if normalize_url(url) in del_wl:
+                        self.log(tr(self.lang, "leave_protected", i=i, total=total, url=url))
+                        continue
+
+                    try:
+                        poster.driver.get(url)
+                    except Exception:
+                        try:
+                            poster.driver.execute_script("window.stop();")
+                        except Exception:
+                            pass
+
+                    ok = poster.leave_group_if_possible()
+                    if ok:
+                        left_count += 1
+                    else:
+                        skipped += 1
+                self.log(tr(self.lang, "exit_low_done", left=left_count, skip=skipped))
+            except Exception as e:
+                self.log(f'[!] 退出低活跃组异常: {e!r}')
+            finally:
+                self.stop_btn.setEnabled(False)
+
+        threading.Thread(target=run, daemon=True).start()

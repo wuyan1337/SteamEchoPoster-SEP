@@ -10,6 +10,7 @@ def app_path(*parts) -> str:
 APP_DIR = Path(os.getcwd())
 PROFILE_DIR = (APP_DIR / 'chrome_profile').resolve()
 GROUPS_FILE = APP_DIR / 'groups.txt'
-POST_WL_FILE = APP_DIR / 'post_whitelist.txt'     # 留言白名单
-DEL_WL_FILE  = APP_DIR / 'delete_whitelist.txt'   # 删除白名单
+POST_WL_FILE = APP_DIR / 'post_whitelist.txt'    
+DEL_WL_FILE  = APP_DIR / 'delete_whitelist.txt'  
+LOW_FILE = APP_DIR / 'low.txt' 
 
